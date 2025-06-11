@@ -1,60 +1,36 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
+import { useEffect, useState } from "react";
 
-const useProducts = (filters) => {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  
+export const useProducts = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        setLoading(true)
-        // Ini akan diganti dengan API nyata
-        // const response = await axios.get('/api/products', { params: filters })
-        
-        // Mock data sementara
-        const mockProducts = [
-          {
-            id: 1,
-            name: 'Kaos Polo Bekas Premium',
-            price: 75000,
-            originalPrice: 250000,
-            condition: 'good',
-            category: 'men',
-            size: 'L',
-            image: '/images/product1.jpg',
-            description: 'Kaos polo bekas kondisi masih bagus, bahan nyaman'
-          },
-          // Tambahkan lebih banyak produk mock
-        ].filter(product => {
-          // Filter berdasarkan kondisi
-          if (filters.condition !== 'all' && product.condition !== filters.condition) {
-            return false
-          }
-          // Filter berdasarkan kategori
-          if (filters.category !== 'all' && product.category !== filters.category) {
-            return false
-          }
-          // Filter berdasarkan harga
-          if (product.price < filters.minPrice || product.price > filters.maxPrice) {
-            return false
-          }
-          return true
-        })
-        
-        setProducts(mockProducts)
-        setLoading(false)
-      } catch (err) {
-        setError(err.message)
-        setLoading(false)
-      }
-    }
-    
-    fetchProducts()
-  }, [filters])
-  
-  return { products, loading, error }
-}
+        setLoading(true);
 
-export default useProducts
+        // Simulasi data (bisa diganti fetch ke API)
+        const dummyProducts = [
+          { id: 1, name: "T-Shirt", price: 25, image: "/images/product1.jpg" },
+          { id: 2, name: "Hoodie", price: 40, image: "/images/product2.jpg" },
+          { id: 3, name: "Cap", price: 15, image: "/images/product3.jpg" },
+          { id: 4, name: "Shoes", price: 70, image: "/images/product4.jpg" },
+          { id: 5, name: "Backpack", price: 55, image: "/images/product5.jpg" },
+        ];
+
+        // Simulasi delay
+        setTimeout(() => {
+          setProducts(dummyProducts);
+          setLoading(false);
+        }, 1000);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  return { products, loading };
+};

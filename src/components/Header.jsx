@@ -1,55 +1,75 @@
-import { Link } from 'react-router-dom'
-import { FiShoppingCart, FiUser, FiSearch } from 'react-icons/fi'
-import { motion } from 'framer-motion'
-import { useCart } from '../context/CartContext'
+import { Link, NavLink } from "react-router-dom";
+import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import {
+  Avatar,
+  AvatarFallback,
+} from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
-  const { cartItems } = useCart()
-  
+  const { cartItems } = useCart();
+  const { session, signOut } = useAuth();
+
+  const cartCount = cartItems.reduce((total, item) => total + item.qty, 0);
+  const user = session?.user;
+  const username = user?.user_metadata?.username || "User";
+
   return (
-    <header className="bg-white shadow-sm">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex justify-between items-center">
-          <Link to="/" className="text-2xl font-bold text-gray-800">
-            SecondStyle
+    <header className="bg-white shadow-sm sticky top-0 z-50">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <Link to="/" className="text-xl font-bold text-primary">
+          SecondStyle
+        </Link>
+
+        <nav className="flex items-center gap-6">
+          <NavLink to="/" className={({ isActive }) => isActive ? "text-primary font-medium" : "text-gray-600 hover:text-primary"}>
+            Home
+          </NavLink>
+          <NavLink to="/products" className={({ isActive }) => isActive ? "text-primary font-medium" : "text-gray-600 hover:text-primary"}>
+            Shop
+          </NavLink>
+
+          <Link to="/cart" className="relative group">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              strokeWidth={1.8} stroke="currentColor"
+              className="w-6 h-6 text-gray-700 group-hover:text-primary transition-colors">
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.4 5M17 13l1.4 5M6 21h.01M18 21h.01" />
+            </svg>
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                {cartCount}
+              </span>
+            )}
           </Link>
-          
-          <div className="relative w-1/3">
-            <input
-              type="text"
-              placeholder="Cari baju bekas..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
-            />
-            <FiSearch className="absolute right-3 top-3 text-gray-400" />
-          </div>
-          
-          <nav className="flex items-center space-x-6">
-            <Link to="/" className="text-gray-600 hover:text-gray-900">Beranda</Link>
-            <Link to="/" className="text-gray-600 hover:text-gray-900">Produk</Link>
-            
-            <div className="flex items-center space-x-4">
-              <Link to="/login" className="p-2 text-gray-600 hover:text-gray-900">
-                <FiUser size={20} />
-              </Link>
-              
-              <Link to="/cart" className="relative p-2 text-gray-600 hover:text-gray-900">
-                <FiShoppingCart size={20} />
-                {cartItems.length > 0 && (
-                  <motion.span 
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
-                  >
-                    {cartItems.length}
-                  </motion.span>
-                )}
-              </Link>
-            </div>
-          </nav>
-        </div>
+
+          {!session ? (
+            <Link to="/login" className="btn btn-outline">
+              Login
+            </Link>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="cursor-pointer">
+                  <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem disabled>Hello, {username}</DropdownMenuItem>
+                <DropdownMenuItem onClick={signOut}>Logout</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </nav>
       </div>
     </header>
-  )
-}
+  );
+};
 
-export default Header
+export default Header;

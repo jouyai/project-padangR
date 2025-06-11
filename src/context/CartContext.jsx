@@ -1,65 +1,39 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState } from "react";
 
-const CartContext = createContext()
+// 1. Buat konteks
+const CartContext = createContext();
 
+// 2. Provider
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([])
-  
-  // Load cart from localStorage on initial render
-  useEffect(() => {
-    const savedCart = localStorage.getItem('secondstyle_cart')
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart))
-    }
-  }, [])
-  
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('secondstyle_cart', JSON.stringify(cartItems))
-  }, [cartItems])
+  const [cartItems, setCartItems] = useState([]);
 
   const addToCart = (product) => {
-    setCartItems(prevItems => {
-      // Check if product with same ID and size already exists in cart
-      const existingItem = prevItems.find(
-        item => item.id === product.id && item.size === product.size
-      )
-      
-      if (existingItem) {
-        // Update quantity if exists
-        return prevItems.map(item =>
-          item.id === product.id && item.size === product.size
-            ? { ...item, quantity: item.quantity + product.quantity }
-            : item
-        )
-      } else {
-        // Add new item if not exists
-        return [...prevItems, product]
+    setCartItems((prev) => {
+      const existing = prev.find((item) => item.id === product.id);
+      if (existing) {
+        return prev.map((item) =>
+          item.id === product.id ? { ...item, qty: item.qty + 1 } : item
+        );
       }
-    })
-  }
+      return [...prev, { ...product, qty: 1 }];
+    });
+  };
 
-  const removeFromCart = (productId, size) => {
-    setCartItems(prevItems =>
-      prevItems.filter(item => !(item.id === productId && item.size === size))
-    )
-  }
+  const removeFromCart = (id) => {
+    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  };
 
-  const updateQuantity = (productId, size, newQuantity) => {
-    if (newQuantity < 1) return
-    
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === productId && item.size === size
-          ? { ...item, quantity: newQuantity }
-          : item
+  const updateQty = (id, qty) => {
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, qty: Math.max(1, qty) } : item
       )
-    )
-  }
+    );
+  };
 
-  const clearCart = () => {
-    setCartItems([])
-  }
+  const clearCart = () => setCartItems([]);
+
+  const totalPrice = cartItems.reduce((sum, item) => sum + item.price * item.qty, 0);
 
   return (
     <CartContext.Provider
@@ -67,15 +41,21 @@ export const CartProvider = ({ children }) => {
         cartItems,
         addToCart,
         removeFromCart,
-        updateQuantity,
-        clearCart
+        updateQty,
+        clearCart,
+        totalPrice,
       }}
     >
       {children}
     </CartContext.Provider>
-  )
-}
+  );
+};
 
+// 3. Custom hook untuk akses konteks
 export const useCart = () => {
-  return useContext(CartContext)
-}
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("useCart must be used within a CartProvider");
+  }
+  return context;
+};
